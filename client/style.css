@@ -1,0 +1,358 @@
+/* books.css */
+
+:root{
+  --bg: #0b1220;
+  --panel: rgba(255,255,255,.06);
+  --panelHover: rgba(255,255,255,.10);
+  --border: rgba(255,255,255,.12);
+  --text: #000000;
+  --muted: rgba(60,60,60,.7);
+  --accent: #d97706; /* amber */
+  --accent2: #92400e; /* brown */
+  --shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: #1A1A1A;
+  background: #d9dbdd;
+  min-height: 100vh;
+  padding: 32px 16px;
+}
+
+/* Grid container */
+#book_grid{
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Each book card */
+#book_grid > div{
+  position: relative;
+  display: grid;
+  grid-template-columns: 120px minmax(180px, 1fr); /* more width for content */
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(180, 190, 205, .35);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
+  overflow: hidden;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+#book_grid > div:hover {
+  transform: translateY(-2px);
+  border-color: rgba(120, 134, 156, .45);
+}
+
+#book_grid > div::before{
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(500px 120px at 20% 0%, rgba(217,119,6,.18), transparent 65%),
+              radial-gradient(480px 120px at 90% 0%, rgba(146,64,14,.14), transparent 65%);
+  pointer-events: none;
+}
+
+#book_grid > div:hover{
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, var(--panelHover), rgba(255,255,255,.04));
+  border-color: rgba(255,255,255,.18);
+}
+
+/* Title */
+#book_grid h1{
+  position: relative;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  line-height: 1.25;
+  letter-spacing: .2px;
+  color: #1A1A1A;
+  max-height: none;
+  overflow: visible;
+  text-overflow: unset;
+  display: block;
+  white-space: normal;
+}
+
+
+.book-image {
+  width: 100%;
+  max-width: 100px;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(0,0,0,.1);
+}
+
+/* Author, year, rating lines */
+#book_grid p{
+  position: relative;
+  margin: 0;
+  color: var(--muted);
+  font-size: .95rem;
+  line-height: 1.35;
+}
+
+/* Author/ID/year/rating/genre classes */
+.book-id {
+  margin-top: 2px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.book-author {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.book-year,
+.book-genre {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+.book-rating {
+  margin-top: 8px;
+  color: #a00000;
+  font-weight: 700;
+  font-size: .96rem;
+}
+
+
+#book_grid h1,
+#book_grid p{
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  color: #1A1A1A;
+}
+
+.card-button,
+.delete-button {
+  color: #1A1A1A;
+}
+
+.delete-button {
+  border-color: rgba(0,0,0,.25);
+  background: rgba(255, 220, 220, .3);
+}
+
+.delete-button:hover {
+  background: rgba(255, 170, 170, .35);
+}
+
+
+/* Add Book Button */
+.add-book-btn {
+  display: block;
+  margin: 0 auto 32px;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+}
+
+.add-book-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
+}
+
+.card-button {
+  margin-top: 8px;
+  margin-right: 4px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.card-button:hover {
+  background: rgba(255,255,255,.16);
+  border-color: rgba(255,255,255,.32);
+}
+
+.delete-button {
+  border-color: rgba(255, 82, 82, .7);
+  color: #ff0000;
+  background: rgba(255, 82, 82, .1);
+}
+
+.delete-button:hover {
+  background: rgba(255, 82, 82, .2);
+}
+
+/* Search Input */
+.search-input {
+  display: block;
+  margin: 0 auto 16px;
+  padding: 12px 16px;
+  width: min(400px, 90%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--panelHover);
+}
+
+/* Sort Select */
+.sort-select {
+  display: block;
+  margin: 0 auto 32px;
+  padding: 12px 16px;
+  width: min(200px, 90%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--panelHover);
+}
+
+.add-guitar-btn:active {
+  transform: translateY(0);
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.form-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--accent);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  justify-content: flex-end;
+}
+
+.btn-cancel, .btn-add {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-add {
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  color: var(--bg);
+}
+
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(125, 211, 252, 0.3);
+}
+
+/* Optional: make cards tighter on small screens */
+@media (max-width: 420px){
+  body{ padding: 22px 12px; }
+  #guitar_grid{ gap: 12px; }
+  #guitar_grid > div{ padding: 14px; border-radius: 14px; }
+  .modal-content {
+    padding: 24px;
+  }
+}

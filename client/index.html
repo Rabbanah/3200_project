@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Collection</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <button id="add_book_btn" class="add-book-btn">+ Add Book</button>
+
+    <input type="text" id="search_input" placeholder="Search books..." class="search-input">
+
+    <select id="sort_select" class="sort-select">
+        <option value="none">Sort by...</option>
+        <option value="title">Title</option>
+        <option value="author">Author</option>
+        <option value="year">Year</option>
+        <option value="rating">Rating</option>
+    </select>
+
+    <div id="book_grid">
+
+    </div>
+
+    <!-- Modal for adding new book -->
+    <div id="book_modal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Book</h2>
+            <form id="book_form">
+                <div class="form-group">
+                    <label for="book_title">Title:</label>
+                    <input type="text" id="book_title" required>
+                </div>
+                <div class="form-group">
+                    <label for="book_id">ID:</label>
+                    <input type="number" id="book_id" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="book_author">Author:</label>
+                    <input type="text" id="book_author" required>
+                </div>
+                <div class="form-group">
+                    <label for="book_year_published">Year Published:</label>
+                    <input type="number" id="book_year_published" min="1000" max="2026" required>
+                </div>
+                <div class="form-group">
+                    <label for="book_rating">Rating:</label>
+                    <input type="number" id="book_rating" min="0" max="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="book_genre">Genre:</label>
+                    <input type="text" id="book_genre" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="cancel_btn" class="btn-cancel">Cancel</button>
+                    <button type="button" id="add_btn" class="btn-add">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+<script src="app.js"></script>
+
+</html>
