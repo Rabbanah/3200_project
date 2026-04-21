@@ -1,7 +1,9 @@
 import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from realdb import RealDB
+from flask import send_file
+from session_store import SessionStore
 
 app = Flask(__name__)
 
@@ -10,6 +12,7 @@ DB_PATH = os.path.join(BASE_DIR, 'database.db')
 JSON_PATH = os.path.join(BASE_DIR, 'database.json')
 
 db = RealDB(DB_PATH)
+session_store = SessionStore()
 
 # Seed SQLite from database.json on first run
 def seed_database_json():
@@ -51,8 +54,24 @@ seed_database_json()
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response
+
+@app.before_request
+def before_request_function():
+    if request.method == "OPTIONS":
+        return "", 204
+        
+    auth_header = request.headers.get("Authorization")
+    session_id = auth_header.removeprefix('Bearer ') if auth_header and auth_header.startswith('Bearer ') else None
+    session_data = session_store.get_session_data(session_id) if session_id else None
+
+    if session_id is None or session_data is None:
+        session_id = session_store.create_session()
+        session_data = session_store.get_session_data(session_id)
+
+    g.session_id = session_id
+    g.session_data = session_data
 
 @app.route('/', methods=['GET'])
 def hello_world():
@@ -68,6 +87,8 @@ def books_id_options(book_id):
 
 @app.route('/books', methods=['GET'])
 def list_books():
+    if 'email' not in g.session_data:
+        return jsonify({'error': 'Unauthorized'}), 401
     books = db.list_books()
     return jsonify(books), 200
 
@@ -91,6 +112,8 @@ def get_next_book_id():
 
 @app.route('/books/<int:book_id>', methods=['GET'])
 def get_book(book_id):
+    if 'email' not in g.session_data:
+        return jsonify({'error': 'Unauthorized'}), 401
     book = db.get_book(book_id)
     if not book:
         return jsonify({'error': 'Book not found'}), 404
@@ -98,6 +121,9 @@ def get_book(book_id):
 
 @app.route('/books', methods=['POST'])
 def create_a_new_book():
+    if 'email' not in g.session_data:
+        return jsonify({'error': 'Unauthorized'}), 401
+        
     data = request.get_json() if request.is_json else request.form
 
     required = ['title', 'author', 'year_published', 'rating', 'genre']
@@ -148,6 +174,9 @@ def create_a_new_book():
 
 @app.route('/books/<int:book_id>', methods=['PUT'])
 def replace_book(book_id):
+    if 'email' not in g.session_data:
+        return jsonify({'error': 'Unauthorized'}), 401
+        
     data = request.get_json() if request.is_json else request.form
 
     required = ['title', 'author', 'year_published', 'rating', 'genre']
@@ -186,11 +215,84 @@ def replace_book(book_id):
 
 @app.route('/books/<int:book_id>', methods=['DELETE'])
 def delete_book(book_id):
+    if 'email' not in g.session_data:
+        return jsonify({'error': 'Unauthorized'}), 401
+        
     book = db.get_book(book_id)
     if not book:
         return jsonify({'error': 'Book not found'}), 404
     db.delete_book(book_id)
     return jsonify({}), 204
+
+@app.route('/users', methods=['POST'])
+def register_user():
+    data = request.get_json() if request.is_json else request.form
+    first_name = str(data.get('first_name', '')).strip()
+    last_name = str(data.get('last_name', '')).strip()
+    email = str(data.get('email', '')).strip()
+    password = str(data.get('password', '')).strip()
+
+    if not all([first_name, last_name, email, password]):
+        return jsonify({'error': 'All fields are required'}), 400
+
+    if db.get_user_by_email(email):
+        return jsonify({'error': 'Email is already registered'}), 400
+
+    db.create_user(first_name, last_name, email, password)
+    return jsonify({'message': 'User registered successfully'}), 201
+
+@app.route('/login', methods=['POST'])
+def process_login():
+    data = request.get_json() if request.is_json else request.form
+    email = str(data.get('email', '')).strip()
+    password = str(data.get('password', '')).strip()
+
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    user = db.validate_user(email, password)
+    if user:
+        g.session_data["email"] = user["email"]
+        g.session_data["first_name"] = user["first_name"]
+        g.session_data["last_name"] = user["last_name"]
+        return jsonify({
+            'email': user["email"],
+            'first_name': user["first_name"],
+            'last_name': user["last_name"]
+        }), 200
+    else:
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+@app.route('/sessions', methods=['GET'])
+def retrieve_session():
+    return jsonify({
+        "id": getattr(g, 'session_id', None),
+        "data": getattr(g, 'session_data', {})
+    }), 200
+
+@app.route('/sessions', methods=['DELETE'])
+def delete_session():
+    if "email" not in g.session_data:
+        return jsonify({'error': 'Unauthenticated'}), 401
+    for key in ['email', 'first_name', 'last_name']:
+        g.session_data.pop(key, None)
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+@app.route('/sessions/settings', methods=['PUT'])
+def save_settings():
+    data = request.get_json() if request.is_json else request.form
+    if 'color' in data:
+        g.session_data['fav_color'] = data['color']
+    return jsonify({'message': 'Settings saved'}), 200
+
+@app.route('/openapi.yaml', methods=['GET'])
+def serve_openapi_spec():
+    # This points directly to the file in the same folder as app.py
+    file_path = os.path.join(os.path.dirname(__file__), 'openapi.yaml')
+    if os.path.exists(file_path):
+        return send_file(file_path, mimetype='text/yaml')
+    else:
+        return jsonify({"error": "openapi.yaml not found on server disk"}), 404
 
 @app.errorhandler(404)
 def handle_404(e):
@@ -203,6 +305,8 @@ def handle_405(e):
 @app.errorhandler(400)
 def handle_400(e):
     return jsonify({'error': 'Bad request'}), 400
+
+
 
 if __name__ == '__main__':
     app.run(port=5000, host='0.0.0.0')

@@ -1,6 +1,15 @@
 const API_BASE = 'http://localhost:5000';
 let currentlyEditingId = null;
 
+function getAuthHeaders() {
+    let headers = { "Content-Type": "application/x-www-form-urlencoded" };
+    let sessionID = localStorage.getItem("sessionID");
+    if (sessionID) {
+        headers["Authorization"] = `Bearer ${sessionID}`;
+    }
+    return headers;
+}
+
 function build_book_div(book) {
     let grid_div = document.querySelector("#book_grid")
     let new_div = document.createElement("div")
@@ -57,7 +66,11 @@ function build_book_div(book) {
             return;
         }
         if (confirm(`Delete '${book.title}'?`)) {
-            fetch(`${API_BASE}/books/${book.id}`, { method: 'DELETE', mode: 'cors' })
+            fetch(`${API_BASE}/books/${book.id}`, { 
+                method: 'DELETE', 
+                mode: 'cors',
+                headers: getAuthHeaders()
+            })
                 .then(response => {
                     if (response.status === 204) {
                         load_page();
@@ -126,9 +139,7 @@ modalAddBtn.onclick = function () {
     fetch(url, {
         method: method,
         body: data,
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
+        headers: getAuthHeaders()
     }).then(function (response) {
         if (!response.ok && response.status !== 204) {
             return parseErrorResponse(response);
@@ -155,9 +166,6 @@ modalAddBtn.onclick = function () {
     })
 }
 
-
-
-
 // Modal functionality
 const modal = document.getElementById('book_modal');
 const addBtn = document.getElementById('add_book_btn');
@@ -182,15 +190,156 @@ window.addEventListener('click', function (event) {
     }
 });
 
+// Auth & Settings Logic
+const loginModal = document.getElementById('login_modal');
+const registerModal = document.getElementById('register_modal');
+const appContainer = document.getElementById('app_container');
+const loggedOutUI = document.getElementById('logged_out_ui');
+const loggedInUI = document.getElementById('logged_in_ui');
+
+// Listeners for open/close auth modals
+document.getElementById('nav_login_btn').onclick = () => loginModal.classList.add('show');
+document.getElementById('nav_register_btn').onclick = () => registerModal.classList.add('show');
+document.getElementById('login_cancel_btn').onclick = () => { loginModal.classList.remove('show'); document.getElementById('login_form').reset(); };
+document.getElementById('reg_cancel_btn').onclick = () => { registerModal.classList.remove('show'); document.getElementById('register_form').reset(); };
+
+// Register
+document.getElementById('reg_submit_btn').onclick = function() {
+    let first_name = document.getElementById('reg_first_name').value;
+    let last_name = document.getElementById('reg_last_name').value;
+    let email = document.getElementById('reg_email').value;
+    let password = document.getElementById('reg_password').value;
+
+    let data = `first_name=${encodeURIComponent(first_name)}&last_name=${encodeURIComponent(last_name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+    
+    fetch(`${API_BASE}/users`, {
+        method: 'POST',
+        body: data,
+        headers: getAuthHeaders()
+    }).then(res => res.json().then(data => ({status: res.status, body: data})))
+    .then(result => {
+        if (result.status === 201) {
+            alert("Registration successful! You may now login.");
+            registerModal.classList.remove('show');
+            document.getElementById('register_form').reset();
+        } else {
+            alert(result.body.error || "Registration failed");
+        }
+    });
+};
+
+// Login
+document.getElementById('login_submit_btn').onclick = function() {
+    let email = document.getElementById('login_email').value;
+    let password = document.getElementById('login_password').value;
+
+    let data = `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+    
+    fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        body: data,
+        headers: getAuthHeaders()
+    }).then(res => res.json().then(data => ({status: res.status, body: data})))
+    .then(result => {
+        if (result.status === 200) {
+            loginModal.classList.remove('show');
+            document.getElementById('login_form').reset();
+            showLoggedInUI(result.body.first_name);
+            load_page();
+        } else {
+            alert(result.body.error || "Login failed");
+        }
+    });
+};
+
+// Logout
+document.getElementById('nav_logout_btn').onclick = function() {
+    fetch(`${API_BASE}/sessions`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    }).then(() => {
+        showLoggedOutUI();
+        document.getElementById('book_grid').innerHTML = "";
+    });
+};
+
+// Color Picker Setting
+const colorPicker = document.getElementById('colorPicker');
+if (colorPicker) {
+    colorPicker.addEventListener('change', function() {
+        document.body.style.backgroundColor = this.value;
+        let data = `color=${encodeURIComponent(this.value)}`;
+        fetch(`${API_BASE}/sessions/settings`, {
+            method: 'PUT',
+            body: data,
+            headers: getAuthHeaders()
+        });
+    });
+}
+
+function showLoggedInUI(name) {
+    appContainer.classList.remove('hidden');
+    loggedOutUI.classList.add('hidden');
+    loggedInUI.classList.remove('hidden');
+    if (name) {
+        document.getElementById('welcome_message').textContent = `Welcome, ${name}!`;
+    }
+}
+
+function showLoggedOutUI() {
+    appContainer.classList.add('hidden');
+    loggedInUI.classList.add('hidden');
+    loggedOutUI.classList.remove('hidden');
+}
+
+// Session Initialization
+function initSession() {
+    fetch(`${API_BASE}/sessions`, {
+        headers: getAuthHeaders()
+    }).then(res => res.json()).then(session => {
+        localStorage.setItem('sessionID', session.id);
+        
+        if (session.data.fav_color) {
+            document.body.style.backgroundColor = session.data.fav_color;
+            let picker = document.getElementById('color_picker');
+            if(picker) picker.value = session.data.fav_color;
+        }
+        
+        if (session.data.email) {
+            showLoggedInUI(session.data.first_name);
+            load_page();
+        } else {
+            showLoggedOutUI();
+        }
+    });
+}
+
+// Color setup mapping correctly since id might vary
+document.getElementById('color_picker').addEventListener('change', function() {
+    document.body.style.backgroundColor = this.value;
+    let data = `color=${encodeURIComponent(this.value)}`;
+    fetch(`${API_BASE}/sessions/settings`, {
+        method: 'PUT',
+        body: data,
+        headers: getAuthHeaders()
+    });
+});
+
+initSession();
+
 let allBooks = [];
 
 function load_page(filter = '') {
     let grid_div = document.querySelector("#book_grid")
     grid_div.innerHTML = ""
     console.log("connected")
-    fetch(`${API_BASE}/books`)
+    
+    fetch(`${API_BASE}/books`, {
+        headers: getAuthHeaders()
+    })
         .then(function (response) {
             console.log('GET /books status', response.status)
+            if (response.status === 401) throw new Error("Unauthorized");
             return response.json();
         })
         .then(function (data) {

@@ -9,20 +9,32 @@
 </head>
 
 <body>
-    <button id="add_book_btn" class="add-book-btn">+ Add Book</button>
+    <div id="nav_bar" class="nav-bar">
+        <div class="user-controls" id="logged_out_ui">
+            <button id="nav_login_btn" class="btn-cancel">Login</button>
+            <button id="nav_register_btn" class="btn-add">Register</button>
+        </div>
+        <div class="user-controls hidden" id="logged_in_ui">
+            <span id="welcome_message"></span>
+            <button id="nav_logout_btn" class="btn-cancel">Logout</button>
+        </div>
+        <div class="settings">
+            <label for="color_picker">Theme Color:</label>
+            <input type="color" id="color_picker" value="#d9dbdd">
+        </div>
+    </div>
 
-    <input type="text" id="search_input" placeholder="Search books..." class="search-input">
-
-    <select id="sort_select" class="sort-select">
-        <option value="none">Sort by...</option>
-        <option value="title">Title</option>
-        <option value="author">Author</option>
-        <option value="year">Year</option>
-        <option value="rating">Rating</option>
-    </select>
-
-    <div id="book_grid">
-
+    <div id="app_container" class="hidden">
+        <button id="add_book_btn" class="add-book-btn">+ Add Book</button>
+        <input type="text" id="search_input" placeholder="Search books..." class="search-input">
+        <select id="sort_select" class="sort-select">
+            <option value="none">Sort by...</option>
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="year">Year</option>
+            <option value="rating">Rating</option>
+        </select>
+        <div id="book_grid"></div>
     </div>
 
     <!-- Modal for adding new book -->
@@ -57,6 +69,56 @@
                 <div class="modal-buttons">
                     <button type="button" id="cancel_btn" class="btn-cancel">Cancel</button>
                     <button type="button" id="add_btn" class="btn-add">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login_modal" class="modal">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <form id="login_form">
+                <div class="form-group">
+                    <label for="login_email">Email:</label>
+                    <input type="email" id="login_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login_password">Password:</label>
+                    <input type="password" id="login_password" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="login_cancel_btn" class="btn-cancel">Cancel</button>
+                    <button type="button" id="login_submit_btn" class="btn-add">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register_modal" class="modal">
+        <div class="modal-content">
+            <h2>Register</h2>
+            <form id="register_form">
+                <div class="form-group">
+                    <label for="reg_first_name">First Name:</label>
+                    <input type="text" id="reg_first_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_last_name">Last Name:</label>
+                    <input type="text" id="reg_last_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_email">Email:</label>
+                    <input type="email" id="reg_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_password">Password:</label>
+                    <input type="password" id="reg_password" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="reg_cancel_btn" class="btn-cancel">Cancel</button>
+                    <button type="button" id="reg_submit_btn" class="btn-add">Register</button>
                 </div>
             </form>
         </div>

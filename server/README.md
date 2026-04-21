@@ -1,6 +1,6 @@
 # Book Collection API
 
-This project manages a single resource: **book**.
+This project manages two main resources: **book** and **user**.
 
 ## Resource model
 
@@ -13,16 +13,31 @@ This project manages a single resource: **book**.
   - `rating` (integer 0-10)
   - `genre` (text)
 
+- resource: `user`
+- attributes:
+  - `id` (integer, unique identifier)
+  - `first_name` (text)
+  - `last_name` (text)
+  - `email` (text)
+  - `password_hash` (text, encrypted)
+
 ## SQLite schema
 
 ```sql
 CREATE TABLE books (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  author TEXT NOT NULL,
-  year_published INTEGER NOT NULL,
-  rating INTEGER NOT NULL,
-  genre TEXT NOT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    year_published INTEGER NOT NULL,
+    rating INTEGER NOT NULL,
+    genre TEXT NOT NULL
+);
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
 );
 ```
 
@@ -73,6 +88,3 @@ CREATE TABLE books (
 
 - No third-party JS/CSS frameworks are used.
 - Data operations use `fetch` and JSON/form body in client API requests.
-
-
-

@@ -1,4 +1,5 @@
 import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class RealDB:
     def __init__(self, filename):
@@ -17,6 +18,15 @@ class RealDB:
                 year_published INTEGER NOT NULL,
                 rating INTEGER NOT NULL,
                 genre TEXT NOT NULL
+            )
+        """)
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
             )
         """)
         self.conn.commit()
@@ -65,4 +75,22 @@ class RealDB:
         self.conn.commit()
         return self.cursor.rowcount > 0
 
-    
+    def get_user_by_email(self, email):
+        self.cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+
+    def create_user(self, first_name, last_name, email, password):
+        hashed_password = generate_password_hash(password)
+        self.cursor.execute(
+            "INSERT INTO users (first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?)",
+            (first_name, last_name, email, hashed_password)
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def validate_user(self, email, password):
+        user = self.get_user_by_email(email)
+        if user and check_password_hash(user['password_hash'], password):
+            return user
+        return None

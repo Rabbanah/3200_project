@@ -1,0 +1,154 @@
+openapi: 3.0.0
+info:
+  title: Book Management API
+  description: A simple API for managing a library of books, created for SE 3200.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+paths:
+  /:
+    get:
+      summary: Welcome message
+      responses:
+        '200':
+          description: A simple hello world greeting
+          content:
+            text/html:
+              schema:
+                type: string
+                example: <p>Hello world</p>
+  /books:
+    get:
+      summary: List all books
+      responses:
+        '200':
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+    post:
+      summary: Create a new book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBook'
+      responses:
+        '201':
+          description: Book created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Invalid input or missing fields
+  /books/{book_id}:
+    parameters:
+      - name: book_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get a book by ID
+      responses:
+        '200':
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '404':
+          description: Book not found
+    put:
+      summary: Update/Replace a book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBook'
+      responses:
+        '200':
+          description: Book updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Invalid input
+        '404':
+          description: Book not found
+    delete:
+      summary: Delete a book
+      responses:
+        '204':
+          description: Book deleted successfully
+        '404':
+          description: Book not found
+  /books/next_id:
+    get:
+      summary: Get the next available ID
+      responses:
+        '200':
+          description: The next ID value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next_id:
+                    type: integer
+  /debug:
+    get:
+      summary: Database debug info
+      responses:
+        '200':
+          description: Status of the database connection
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        year_published:
+          type: integer
+        rating:
+          type: integer
+        genre:
+          type: string
+    NewBook:
+      type: object
+      required:
+        - title
+        - author
+        - year_published
+        - rating
+        - genre
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        year_published:
+          type: integer
+          minimum: 1000
+          maximum: 2026
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+        genre:
+          type: string
+        id:
+          type: integer
